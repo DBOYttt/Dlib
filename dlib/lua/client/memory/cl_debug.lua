@@ -27,9 +27,14 @@ concommand.Add("debug-ui", function()
     net.Receive("SendAddonDetailsToClient", function()
         local addonDetails = net.ReadTable()
         for _, details in ipairs(addonDetails) do
+            -- Check if the functions list is empty
+            if #details.functions == 0 then
+                details.functions = {"none"}
+            end
             list:AddLine(details.name, tostring(details.loadOnStart), details.side, table.concat(details.functions, ", "))
         end
     end)
+    
 end)
 
 print("Client-side Debug initialized.")

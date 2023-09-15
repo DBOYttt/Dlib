@@ -69,6 +69,12 @@ local function TruncateText(text, maxWidth)
 end
 
 function PANEL:Paint(w, h)
+
+    local cellText = cell
+    if cellText == "none" then
+    draw.SimpleText(cellText, "DermaDefault", j * colWidth - colWidth / 2, self.headerHeight + (i - 0.5) * self.headerHeight, Color(255, 0, 0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER) -- Red color for "none"
+    end
+    
     -- Paint the header
     if self.headerColor then
         draw.RoundedBox(0, 0, 0, w, self.headerHeight, self.headerColor)
