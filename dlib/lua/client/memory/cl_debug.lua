@@ -12,7 +12,7 @@ concommand.Add("debug-ui", function()
     frame:SetTitle("Debug Window")
     frame:MakePopup()
 
-    local list = vgui.Create("DListView", frame)
+    local list = vgui.Create("Dlib.ListView", frame)
     list:SetSize(550, 300)
     list:SetPos(25, 50)
     list:AddColumn("Addon Name")

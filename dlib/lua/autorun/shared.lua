@@ -5,7 +5,7 @@ if CLIENT then
     -- Load resources from the gui folder
     include("client/gui/cl_frame.lua")
     include("client/gui/cl_custombutton.lua")
-
+    include("client/gui/cl_listview.lua")
     -- Load resources from the memory folder
     include("client/memory/cl_debug.lua")
     
