@@ -27,7 +27,47 @@ function PANEL:AddLine(...)
     table.insert(self.rows, line)
 end
 
--- Paint the panel
+local function CreateDynamicWindow(text)
+    if IsValid(currentDetailWindow) then
+        currentDetailWindow:Close() -- Close the existing window if it's open
+    end
+
+    local textWidth, textHeight = surface.GetTextSize(text)
+    
+    -- Ensure a minimum width and height for readability
+    local minWidth, minHeight = 200, 100
+    local finalWidth = math.max(textWidth + 40, minWidth)
+    local finalHeight = math.max(textHeight + 60, minHeight) -- Added some padding for better appearance
+
+    currentDetailWindow = vgui.Create("Dlib.Frame")
+    currentDetailWindow:SetSize(finalWidth, finalHeight)
+    currentDetailWindow:Center()
+    currentDetailWindow:SetTitle("Details")
+    currentDetailWindow:MakePopup()
+
+    local label = vgui.Create("DLabel", currentDetailWindow)
+    label:SetPos(20, 60)
+    label:SetSize(finalWidth - 40, finalHeight - 80) -- Adjusting for padding
+    label:SetText(text)
+    label:SetWrap(true)
+end
+
+-- Helper function to truncate text if it's too long
+local function TruncateText(text, maxWidth)
+    local textWidth, textHeight = surface.GetTextSize(text)
+    if textWidth <= maxWidth then
+        return text
+    end
+
+    local truncatedText = text
+    while textWidth > maxWidth do
+        truncatedText = string.sub(truncatedText, 1, -2) .. "..."
+        textWidth, textHeight = surface.GetTextSize(truncatedText)
+    end
+
+    return truncatedText
+end
+
 function PANEL:Paint(w, h)
     -- Paint the header
     if self.headerColor then
@@ -43,9 +83,30 @@ function PANEL:Paint(w, h)
     -- Paint rows
     for i, row in ipairs(self.rows) do
         for j, cell in ipairs(row) do
-            draw.SimpleText(cell, "DermaDefault", j * colWidth - colWidth / 2, self.headerHeight + (i - 0.5) * self.headerHeight, self.textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            local cellText = cell
+            surface.SetFont("DermaDefault")
+            local textW, textH = surface.GetTextSize(cellText)
+            
+            -- Trim the text if it's too long for the cell
+            while textW > colWidth and #cellText > 0 do
+                cellText = cellText:sub(1, -2) -- remove the last character
+                textW, textH = surface.GetTextSize(cellText)
+            end
+
+            if self:IsHovered() then
+                local mouseX, mouseY = self:CursorPos()
+                if mouseX > (j - 1) * colWidth and mouseX < j * colWidth and mouseY > self.headerHeight + (i - 1) * self.headerHeight and mouseY < self.headerHeight + i * self.headerHeight then
+                    draw.RoundedBox(0, (j - 1) * colWidth, self.headerHeight + (i - 1) * self.headerHeight, colWidth, self.headerHeight, self.highlightColor)
+                    if input.IsMouseDown(MOUSE_LEFT) then
+                        CreateDynamicWindow(cell)
+                    end
+                end
+            end
+            draw.SimpleText(cellText, "DermaDefault", j * colWidth - colWidth / 2, self.headerHeight + (i - 0.5) * self.headerHeight, self.textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         end
     end
 end
+
+
 
 vgui.Register("Dlib.ListView", PANEL)

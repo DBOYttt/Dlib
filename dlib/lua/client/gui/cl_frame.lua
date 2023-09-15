@@ -40,7 +40,7 @@ end
 -- Custom rendering
 function PANEL:Paint(w, h)
     local alpha = 255
-    local headerHeight = 35 -- Zwiększona wysokość nagłówka
+    local headerHeight = 35 -- Increased header height
 
     if self.useAnimation then
         local elapsed = SysTime() - self.startAnim
@@ -50,7 +50,7 @@ function PANEL:Paint(w, h)
     draw.RoundedBox(0, 0, 0, w, h, Color(40, 40, 40, alpha)) -- Background with animation
     draw.RoundedBox(0, 0, 0, w, headerHeight, Color(30, 30, 30, alpha)) -- Header with animation
 
-    -- Aktualizacja położenia przycisku zamknięcia w prawym górnym rogu
+    -- Update the position of the close button to the top right corner
     self.closeBtn:SetPos(self:GetWide() - 34, 2)
 end
 
