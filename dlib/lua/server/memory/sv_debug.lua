@@ -2,6 +2,10 @@
 util.AddNetworkString("RequestAddonDetailsFromServer")
 util.AddNetworkString("SendAddonDetailsToClient")
 
+Dlib = Dlib or {}
+Dlib.RegisteredAddons = Dlib.RegisteredAddons or {}
+
+
 -- Ensure Dlib is available
 if not Dlib then
     print("[Server] Dlib not found! Debug functionality will not be available.")
@@ -11,23 +15,35 @@ end
 
 
 -- Function to scan for addons using Dlib
-local function ScanForAddons()
+local function ScanForAddons(directory)
     local foundAddons = {}
 
-    local _, directories = file.Find("addons/*", "GAME")
-    for _, dir in ipairs(directories) do
-        local luaFiles, _ = file.Find("addons/" .. dir .. "/lua/*.lua", "GAME")
-        for _, luaFile in ipairs(luaFiles) do
-            local content = file.Read("addons/" .. dir .. "/lua/" .. luaFile, "GAME")
+    -- Jeśli nie podano katalogu, zaczynamy od katalogu "addons/"
+    directory = directory or "addons/"
+
+    local luaFiles, directories = file.Find(directory .. "*", "GAME")
+
+    -- Przeszukaj wszystkie pliki .lua w bieżącym katalogu
+    for _, luaFile in ipairs(luaFiles) do
+        if string.EndsWith(luaFile, ".lua") then
+            local content = file.Read(directory .. luaFile, "GAME")
             if content and string.match(content, "Dlib%.RegisterAddon") then
-                table.insert(foundAddons, "addons/" .. dir .. "/lua/" .. luaFile)
-                break
+                table.insert(foundAddons, directory .. luaFile)
             end
+        end
+    end
+
+    -- Rekursywnie przeszukaj wszystkie podkatalogi
+    for _, dir in ipairs(directories) do
+        local subDirAddons = ScanForAddons(directory .. dir .. "/")
+        for _, addonPath in ipairs(subDirAddons) do
+            table.insert(foundAddons, addonPath)
         end
     end
 
     return foundAddons
 end
+
 
 -- Function to extract addon details from the file content
 local function ExtractAddonDetails(filePath)
@@ -61,6 +77,17 @@ local function ExtractAddonDetails(filePath)
         functions = functions
     }
 end
+
+function Dlib.RegisterAddon(name, loadOnStart, side, functions, order)
+    table.insert(Dlib.RegisteredAddons, {
+        name = name,
+        loadOnStart = loadOnStart,
+        side = side,
+        functions = functions,
+        order = order
+    })
+end
+
 
 local function SendAddonDetailsToPlayer(ply)
     local foundAddons = ScanForAddons()
