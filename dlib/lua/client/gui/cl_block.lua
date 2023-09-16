@@ -29,11 +29,20 @@ function BLOCK:SetBarSide(side)
     end
 end
 
+function BLOCK:Disconnect()
+    if self.connectedBlock then
+        self.connectedBlock.connectedBlock = nil
+        self.connectedBlock = nil
+    end
+end
+
+
 function BLOCK:OnMousePressed()
     self.isDragging = true
     local x, y = self:CursorPos()
     self.dragOffsetX = x
     self.dragOffsetY = y
+    self:Disconnect() -- Rozłącz bloczki, gdy jeden z nich jest przeciągany
 end
 
 function BLOCK:OnMouseReleased()
