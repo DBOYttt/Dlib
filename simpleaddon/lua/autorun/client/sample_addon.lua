@@ -4,11 +4,10 @@ local function ShowCustomUI()
     frame:SetSize(600, 400)
     frame:Center()
     frame:SetTitle("Testowy interfejs")
+    frame:MakePopup()
 
-    local textEntry = vgui.Create("Dlib.TextEntry", frame)
-    textEntry:SetPos(150, 180)
-    textEntry:SetSize(300, 30)
-    textEntry:SetPlaceholderText("Wpisz coś tutaj...")
+    local circleSwitch = vgui.Create("Dlib.CircleSwitch", frame)
+    circleSwitch:SetPos(250, 180)
 end
 
 -- Dodanie komendy "test", która wywoła naszą funkcję
