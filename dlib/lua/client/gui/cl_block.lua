@@ -68,8 +68,9 @@ function BLOCK:Think()
             for _, v in pairs(self:GetParent():GetChildren()) do
                 if v != self and v:GetName() == "Dlib.Block" then
                     if self:CheckCollision(v) then
-                        -- Jeśli jest kolizja, łącz bloczki
                         self.connectedBlock = v
+                        v.connectedBlock = self -- Dodajemy tę linię, aby określić, który bloczek jest "pierwszym" bloczkiem w połączeniu
+                        isConnected = true
                         break
                     end
                 end
@@ -104,10 +105,29 @@ function BLOCK:Paint(w, h)
 
     -- Jasny pasek po lewej lub prawej stronie
     surface.SetDrawColor(self.color)
-    if self.barSide == "left" then
-        surface.DrawRect(0, 0, 15, h)
+    local barWidth = 3 -- Ustawiamy szerokość paska na 3 piksele
+    
+    if self.connectedBlock then
+        if self.connectedBlock == self then
+            surface.DrawRect(0, 0, barWidth, h) -- Jeśli ten bloczek jest głównym bloczkiem połączenia, rysuj pasek po lewej stronie
+        else
+            surface.DrawRect(w - barWidth, 0, barWidth, h) -- Jeśli ten bloczek jest drugim bloczkiem połączenia, rysuj pasek po prawej stronie
+        end
     else
-        surface.DrawRect(w - 15, 0, 15, h)
+        surface.DrawRect(w - barWidth, 0, barWidth, h) -- Jeśli bloczek nie jest połączony, rysuj pasek po prawej stronie
+    end
+    
+
+    surface.SetDrawColor(self.color)
+
+    if self.connectedBlock then
+        if self.connectedBlock.connectedBlock == self then
+            surface.DrawRect(0, 0, barWidth, h) -- Jeśli ten bloczek jest "pierwszym" bloczkiem w połączeniu, rysuj pasek po lewej stronie
+        else
+            surface.DrawRect(w - barWidth, 0, barWidth, h) -- Jeśli ten bloczek jest "drugim" bloczkiem w połączeniu, rysuj pasek po prawej stronie
+        end
+    else
+        surface.DrawRect(w - barWidth, 0, barWidth, h) -- Jeśli bloczek nie jest połączony, rysuj pasek po prawej stronie
     end
 
     -- Rysowanie zaczepu
