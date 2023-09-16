@@ -8,6 +8,7 @@ if CLIENT then
     include("client/gui/cl_listview.lua")
     include("client/gui/cl_textentry.lua")
     include("client/gui/cl_toggleswitch.lua")
+    include("client/gui/cl_block.lua")
     -- Load resources from the memory folder
     include("client/memory/cl_debug.lua")
     
