@@ -9,47 +9,57 @@ function PANEL:Init()
     self.headerHeight = 30 -- Header height
     self.headerColor = Color(30, 30, 30) -- Header color
     self.textColor = Color(200, 200, 200) -- Text color
+
+    -- Set text color method for the ListView
+    function self:SetTextColor(color)
+        self.textColor = color
+    end
     self.highlightColor = Color(60, 60, 60) -- Highlight color
+    self.multiSelect = false -- By default, multiSelect is false
+    self.selectedRows = {} -- Table to store the selected rows
 end
 
 -- Add a column
 function PANEL:AddColumn(name)
     local col = {
         name = name,
+        textColor = Color(255, 255, 255),
         width = self:GetWide() / (#self.columns + 1) -- Example column width
     }
     table.insert(self.columns, col)
+
+    function col:SetTextColor(color)
+        self.textColor = color
+    end
+
+    return col
 end
 
 -- Add a row
 function PANEL:AddLine(...)
     local line = {...}
+    function line:SetTextColor(color)
+        for _, cell in ipairs(self) do
+            if isstring(cell) then
+                -- Modify the cell value to include a color
+                self[_] = {text = cell, color = color}
+            elseif istable(cell) and cell.text then
+                cell.color = color
+            end
+        end
+    end
     table.insert(self.rows, line)
+    return line
 end
 
-local function CreateDynamicWindow(text)
-    if IsValid(currentDetailWindow) then
-        currentDetailWindow:Close() -- Close the existing window if it's open
-    end
+-- Set MultiSelect
+function PANEL:SetMultiSelect(bool)
+    self.multiSelect = bool
+end
 
-    local textWidth, textHeight = surface.GetTextSize(text)
-    
-    -- Ensure a minimum width and height for readability
-    local minWidth, minHeight = 200, 100
-    local finalWidth = math.max(textWidth + 40, minWidth)
-    local finalHeight = math.max(textHeight + 60, minHeight) -- Added some padding for better appearance
-
-    currentDetailWindow = vgui.Create("Dlib.Frame")
-    currentDetailWindow:SetSize(finalWidth, finalHeight)
-    currentDetailWindow:Center()
-    currentDetailWindow:SetTitle("Details")
-    currentDetailWindow:MakePopup()
-
-    local label = vgui.Create("DLabel", currentDetailWindow)
-    label:SetPos(20, 60)
-    label:SetSize(finalWidth - 40, finalHeight - 80) -- Adjusting for padding
-    label:SetText(text)
-    label:SetWrap(true)
+-- Get MultiSelect
+function PANEL:GetMultiSelect()
+    return self.multiSelect
 end
 
 -- Helper function to truncate text if it's too long
@@ -69,12 +79,6 @@ local function TruncateText(text, maxWidth)
 end
 
 function PANEL:Paint(w, h)
-
-    local cellText = cell
-    if cellText == "none" then
-    draw.SimpleText(cellText, "DermaDefault", j * colWidth - colWidth / 2, self.headerHeight + (i - 0.5) * self.headerHeight, Color(255, 0, 0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER) -- Red color for "none"
-    end
-    
     -- Paint the header
     if self.headerColor then
         draw.RoundedBox(0, 0, 0, w, self.headerHeight, self.headerColor)
@@ -89,23 +93,13 @@ function PANEL:Paint(w, h)
     -- Paint rows
     for i, row in ipairs(self.rows) do
         for j, cell in ipairs(row) do
-            local cellText = cell
-            surface.SetFont("DermaDefault")
-            local textW, textH = surface.GetTextSize(cellText)
+            local cellText = TruncateText(cell, colWidth) -- Use the truncate function
             
-            -- Trim the text if it's too long for the cell
-            while textW > colWidth and #cellText > 0 do
-                cellText = cellText:sub(1, -2) -- remove the last character
-                textW, textH = surface.GetTextSize(cellText)
-            end
-
+            -- Highlighting rows (this can be expanded for multi-select)
             if self:IsHovered() then
                 local mouseX, mouseY = self:CursorPos()
                 if mouseX > (j - 1) * colWidth and mouseX < j * colWidth and mouseY > self.headerHeight + (i - 1) * self.headerHeight and mouseY < self.headerHeight + i * self.headerHeight then
                     draw.RoundedBox(0, (j - 1) * colWidth, self.headerHeight + (i - 1) * self.headerHeight, colWidth, self.headerHeight, self.highlightColor)
-                    if input.IsMouseDown(MOUSE_LEFT) then
-                        CreateDynamicWindow(cell)
-                    end
                 end
             end
             draw.SimpleText(cellText, "DermaDefault", j * colWidth - colWidth / 2, self.headerHeight + (i - 0.5) * self.headerHeight, self.textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
@@ -113,6 +107,14 @@ function PANEL:Paint(w, h)
     end
 end
 
-
-
 vgui.Register("Dlib.ListView", PANEL)
+
+-- Set background color method for the ListView
+function PANEL:SetBackgroundColor(color)
+    self.BackgroundColor = color
+end
+
+-- Set header height method for the ListView
+function PANEL:SetHeaderHeight(height)
+    self.headerHeight = height
+end
